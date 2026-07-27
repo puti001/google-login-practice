@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puti-AI | 學生 Google 帳號密碼登入練習系統</title>
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-main: #202124;
+      --text-sub: #5f6368;
+      --google-blue: #1a73e8;
+      --google-blue-hover: #1557b0;
+      --google-red: #d93025;
+      --google-green: #1e8e3e;
+      --google-yellow: #f9ab00;
+      --border-color: #dadce0;
+      --border-focus: #1a73e8;
+      --shadow-sm: 0 1px 3px rgba(60,64,67,0.12), 0 1px 2px rgba(60,64,67,0.24);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 16px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding: 12px 20px;
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .brand-title h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title h1 span.badge {
+      background: #e8f0fe;
+      color: var(--google-blue);
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .brand-title p {
+      font-size: 0.825rem;
+      color: var(--text-sub);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-secondary {
+      background: #f1f3f4;
+      color: var(--text-main);
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: #e8eaed;
+    }
+
+    /* Main Container */
+    main {
+      width: 100%;
+      max-width: 1000px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .view-section {
+      width: 100%;
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Student Selector View */
+    .class-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: var(--google-blue);
+      color: #ffffff;
+      border-color: var(--google-blue);
+      box-shadow: 0 2px 6px rgba(26,115,232,0.3);
+    }
+
+    .student-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .student-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .student-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--google-blue);
+    }
+
+    .student-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #e8f0fe;
+      color: var(--google-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .student-info h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .student-info p {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      word-break: break-all;
+    }
+
+    .student-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-color);
+      font-size: 0.8rem;
+    }
+
+    .stat-tag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-sub);
+    }
+
+    .stat-tag.success {
+      color: var(--google-green);
+      font-weight: 600;
+    }
+
+    /* Google Login Simulator Card */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 20px 0;
+    }
+
+    .google-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 450px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      padding: 40px 36px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .google-header {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+
+    .google-logo {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+    }
+
+    .google-title {
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .google-subtitle {
+      font-size: 1rem;
+      color: var(--text-sub);
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8f9fa;
+      border: 1px solid var(--border-color);
+      padding: 6px 14px 6px 8px;
+      border-radius: 20px;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    .user-badge img, .user-badge .avatar-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--google-blue);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .user-badge .email-text {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .input-group {
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .input-field-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .google-input {
+      width: 100%;
+      padding: 16px;
+      font-size: 1rem;
+      border: 1px solid #747775;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: transparent;
+    }
+
+    .google-input:focus {
+      border-color: var(--google-blue);
+      border-width: 2px;
+      padding: 15px;
+    }
+
+    .google-input.error {
+      border-color: var(--google-red) !important;
+      border-width: 2px !important;
+      padding: 15px;
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .error-msg {
+      color: var(--google-red);
+      font-size: 0.8rem;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 20px;
+    }
+
+    .key-helper-box {
+      margin-top: 16px;
+      background: #e8f0fe;
+      border: 1px solid #c2e7ff;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .key-helper-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #041e49;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .key-visual-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Keyboard Key 3D Shape Representation */
+    .key-cap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f3f4 100%);
+      border: 1px solid #dadce0;
+      border-bottom: 3px solid #bdc1c6;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #1f1f1f;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      min-width: 36px;
+      height: 38px;
+      text-align: center;
+      transition: transform 0.1s;
+    }
+
+    .key-cap.special {
+      background: linear-gradient(180deg, #feefc3 0%, #fdd663 100%);
+      border-color: #f29900;
+      border-bottom-color: #c47c00;
+      color: #202124;
+      font-size: 0.85rem;
+    }
+
+    .key-cap.highlight {
+      border-color: var(--google-blue);
+      box-shadow: 0 0 8px rgba(26,115,232,0.4);
+      animation: pulseKey 1.2s infinite alternate;
+    }
+
+    @keyframes pulseKey {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 32px;
+    }
+
+    .btn-text {
+      background: none;
+      border: none;
+      color: var(--google-blue);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+
+    .btn-text:hover {
+      background: #e8f0fe;
+    }
+
+    .btn-primary {
+      background: var(--google-blue);
+      color: #ffffff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: var(--google-blue-hover);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* Live Speed & Timer Indicator */
+    .timer-bar {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f3f4;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+
+    .timer-bar i {
+      color: var(--google-yellow);
+    }
+
+    /* Quick Fill Helper for Kids */
+    .quick-helper {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .chip-btn {
+      background: #f1f3f4;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip-btn:hover {
+      background: #e8f0fe;
+      color: var(--google-blue);
+      border-color: #c2e7ff;
+    }
+
+    /* Success Modal / Screen */
+    .success-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      padding: 40px 32px;
+      text-align: center;
+      max-width: 480px;
+      margin: 20px auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .trophy-icon {
+      font-size: 4rem;
+      color: var(--google-yellow);
+      margin-bottom: 16px;
+      animation: bounceTrophy 1s infinite alternate cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes bounceTrophy {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-10px) scale(1.1); }
+    }
+
+    .success-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--google-green);
+      margin-bottom: 8px;
+    }
+
+    .success-subtitle {
+      color: var(--text-sub);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .metric-box {
+      background: #f8f9fa;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    .metric-box .label {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .metric-box .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--google-blue);
+    }
+
+    .history-list {
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      margin-bottom: 24px;
+      background: #fafafa;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Modal for Teacher/Student Config */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: var(--radius-md);
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+
+    /* Footer Copyright Section */
+    footer {
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 30px;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+      box-shadow: var(--shadow-sm);
+    }
+
+    footer a {
+      color: var(--google-blue);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Switch toggle */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 22px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--google-blue);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(16px);
+    }
+
+    @media (max-width: 600px) {
+      .google-card {
+        padding: 24px 20px;
+      }
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Section -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h1>Google 帳密登入模擬練習 <span class="badge">教學神器</span></h1>
+        <p>模擬真實 Google 登入流，訓練學生英文字母、大小寫與符號輸入能力</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="openLeaderboardModal()">
+        <i class="fa-solid fa-trophy"></i> 排行榜
+      </button>
+      <button class="btn-secondary" onclick="openManagerModal()">
+        <i class="fa-solid fa-user-gear"></i> 管理學生
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main>
+    <!-- View 1: Student Selector -->
+    <section id="view-selector" class="view-section active">
+      <div class="class-tabs" id="class-tabs">
+        <!-- JS dynamically renders class buttons here -->
+      </div>
+      <div class="student-grid" id="student-grid">
+        <!-- JS dynamically renders student cards here -->
+      </div>
+    </section>
+
+    <!-- View 2: Google Login Simulator -->
+    <section id="view-login" class="view-section">
+      <div class="login-container">
+        <div class="google-card">
+          <!-- Timer Bar -->
+          <div class="timer-bar">
+            <i class="fa-solid fa-clock"></i>
+            <span id="timer-display">00:00.0</span>
+          </div>
+
+          <div class="google-header">
+            <svg class="google-logo" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            
+            <h2 class="google-title" id="login-step-title">登入</h2>
+            <p class="google-subtitle" id="login-step-subtitle">使用您的 Google 帳戶</p>
+
+            <div id="user-badge" class="user-badge" style="display: none;" onclick="resetStepToEmail()">
+              <div class="avatar-circle" id="badge-avatar">詩</div>
+              <span class="email-text" id="badge-email">student@web.hjps.ptc.edu.tw</span>
+              <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-sub); margin-left: 4px;"></i>
+            </div>
+          </div>
+
+          <!-- Step 1: Email Input Form -->
+          <div id="step-email-form">
+            <div class="input-group">
+              <input type="email" id="input-email" class="google-input" placeholder="電子郵件" autocomplete="off" spellcheck="false">
+              <div class="error-msg" id="error-email"></div>
+            </div>
+
+            <!-- Quick helper Domain chip -->
+            <div class="quick-helper">
+              <span>快速補全：</span>
+              <button class="chip-btn" onclick="appendDomain('@web.hjps.ptc.edu.tw')">@web.hjps.ptc.edu.tw</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Password Input Form -->
+          <div id="step-password-form" style="display: none;">
+            <div class="input-group">
+              <div class="input-field-wrapper">
+                <input type="password" id="input-password" class="google-input" placeholder="輸入您的密碼" autocomplete="off">
+                <button type="button" id="toggle-pwd-btn" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-sub);">
+                  <i class="fa-solid fa-eye" id="eye-icon"></i>
+                </button>
+              </div>
+              <div class="error-msg" id="error-password"></div>
+            </div>
+
+            <div style="margin-bottom: 16px; font-size: 0.85rem; color: var(--text-sub);">
+              <i class="fa-solid fa-shield-halved" style="color: var(--google-blue);"></i> 提示：區分大小寫，請注意 Caps Lock 與 Shift 鍵
+            </div>
+          </div>
+
+          <!-- Key Helper Shapes & Next Key Visualizer -->
+          <div class="key-helper-box" id="key-helper-box">
+            <div class="key-helper-title">
+              <span><i class="fa-solid fa-keyboard"></i> 按鍵指引提示</span>
+              <span id="key-status-text" style="color: var(--google-blue); font-weight: 500;">請輸入第一個字元</span>
+            </div>
+            <div class="key-visual-container" id="key-visual-container">
+              <!-- Dynamically populated key shapes -->
+              <span class="key-cap highlight">h</span>
+            </div>
+          </div>
+
+          <!-- Footer Buttons -->
+          <div class="card-footer">
+            <button class="btn-text" onclick="backToSelector()">返回選擇學生</button>
+            <button class="btn-primary" id="btn-next" onclick="handleNextStep()">
+              下一步 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 3: Success Result -->
+    <section id="view-success" class="view-section">
+      <div class="success-card">
+        <div class="trophy-icon">🏆</div>
+        <h2 class="success-title">登入成功！太棒了！</h2>
+        <p class="success-subtitle"><span id="success-student-name" style="font-weight: 700; color: var(--text-main);">同學</span> 成功完成 Google 帳密登入練習</p>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="label"><i class="fa-solid fa-stopwatch"></i> 本次花費時間</div>
+            <div class="value" id="res-time">00.00 秒</div>
+          </div>
+          <div class="metric-box">
+            <div class="label"><i class="fa-solid fa-fire"></i> 累計成功登入</div>
+            <div class="value" id="res-count">1 次</div>
+          </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-sub);">
+          <i class="fa-solid fa-chart-line"></i> 個人歷史練習紀錄：
+        </div>
+        <div class="history-list" id="student-history-list">
+          <!-- History items -->
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+          <button class="btn-secondary" onclick="restartPractice()">
+            <i class="fa-solid fa-rotate-right"></i> 再次練習
+          </button>
+          <button class="btn-primary" onclick="backToSelector()">
+            <i class="fa-solid fa-users"></i> 切換其他學生
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal 1: Leaderboard Modal -->
+  <div class="modal-overlay" id="modal-leaderboard">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-trophy" style="color: var(--google-yellow);"></i> 學生登入練習英雄榜</h3>
+        <button class="close-btn" onclick="closeModal('modal-leaderboard')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+          <thead>
+            <tr style="background: #f1f3f4; border-bottom: 2px solid var(--border-color);">
+              <th style="padding: 10px;">名次</th>
+              <th style="padding: 10px;">班級 / 姓名</th>
+              <th style="padding: 10px;">累計成功</th>
+              <th style="padding: 10px;">最佳速度</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-table-body">
+            <!-- Dynamic leaderboard -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Manage Students Modal -->
+  <div class="modal-overlay" id="modal-manager">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-user-gear"></i> 管理學生與資料庫</h3>
+        <button class="close-btn" onclick="closeModal('modal-manager')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 6px;">新增學生</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 2fr 1fr auto; gap: 8px;">
+            <input type="text" id="add-class" placeholder="班級(如二甲)" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+            <input type="text" id="add-name" placeholder="姓名" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+            <input type="text" id="add-email" placeholder="Email" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+            <input type="text" id="add-pwd" placeholder="密碼" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+            <button class="btn-primary" onclick="addNewStudent()" style="padding: 8px 12px;"><i class="fa-solid fa-plus"></i></button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <button class="btn-secondary" onclick="resetToDefaultData()" style="color: var(--google-red);">
+            <i class="fa-solid fa-arrow-rotate-left"></i> 重置為預設名單
+          </button>
+          <button class="btn-secondary" onclick="exportStudentCSV()">
+            <i class="fa-solid fa-download"></i> 匯出 CSV 紀錄
+          </button>
+        </div>
+
+        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="background: #f1f3f4; border-bottom: 1px solid var(--border-color);">
+                <th style="padding: 8px;">班級</th>
+                <th style="padding: 8px;">姓名</th>
+                <th style="padding: 8px;">帳號</th>
+                <th style="padding: 8px;">密碼</th>
+                <th style="padding: 8px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="student-manage-table-body">
+              <!-- Dynamic Rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copyright Footer -->
+  <footer>
+    屏東縣後庄國小黃朝榮老師作品，免費分享，歡迎擴散推廣，嚴禁商用與任何侵權、不尊重著作權的行為，更多 Puti-AI 教學工具 <a href="https://padlet.com/clongwh/puti_ai_tools" target="_blank" rel="noopener noreferrer">點此前往</a>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // Initial Student Dataset matching prompt provided image exactly
+    const DEFAULT_STUDENTS = [
+      { id: 's1', class: '二甲', name: '吳O誼', email: 'hn01@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's2', class: '二甲', name: '潘O麟', email: 'hn02@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's3', class: '二甲', name: '董O信', email: 'hn03@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's4', class: '二甲', name: '黃O珈', email: 'hn04@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's5', class: '三甲', name: '陳O儀', email: 'hn05@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's6', class: '三甲', name: '潘O菲', email: 'hn06@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's7', class: '三甲', name: '黃O喆', email: 'hn07@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's8', class: '三甲', name: '潘O瑋', email: 'hn08@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's9', class: '四甲', name: '許O凱', email: 'hn09@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's10', class: '四甲', name: '陳O濱', email: 'hn10@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's11', class: '五甲', name: '呂O穎', email: 'hn11@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's12', class: '五甲', name: '陳O霏', email: 'hn12@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's13', class: '五甲', name: '許O婧', email: 'hn13@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's14', class: '五甲', name: '施O凱', email: 'hn14@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's15', class: '五甲', name: '黃O睿', email: 'hn15@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] },
+      { id: 's16', class: '五甲', name: '陳O捷', email: 'hn16@web.hjps.ptc.edu.tw', password: 'demo1234', count: 0, bestTime: null, history: [] }
+    ];
+
+    // State Variables
+    let students = [];
+    let currentStudent = null;
+    let activeClassFilter = '全部';
+    let currentStep = 'email'; // 'email' or 'password'
+    
+    // Timer Variables
+    let startTime = null;
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+
+    // Web Audio Sound Synthesizer (No external asset dependency)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playBeepSound() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime); // Low warning freq
+      osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.25);
+      
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    }
+
+    function playSuccessSound() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5 Arpeggio
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+        
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime + idx * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.1 + 0.4);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(audioCtx.currentTime + idx * 0.1);
+        osc.stop(audioCtx.currentTime + idx * 0.1 + 0.4);
+      });
+    }
+
+    // App Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStudentData();
+      renderClassTabs();
+      renderStudentGrid();
+
+      // Input event listeners for real-time validation & Key Visual Helper
+      document.getElementById('input-email').addEventListener('input', onEmailInputChange);
+      document.getElementById('input-password').addEventListener('input', onPasswordInputChange);
+
+      // Enter key support
+      document.getElementById('input-email').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleNextStep();
+      });
+      document.getElementById('input-password').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleNextStep();
+      });
+    });
+
+    // Local Storage Management
+    function loadStudentData() {
+      const stored = localStorage.getItem('puti_google_students_v2');
+      if (stored) {
+        try {
+          students = JSON.parse(stored);
+        } catch(e) {
+          students = [...DEFAULT_STUDENTS];
+        }
+      } else {
+        // Clear legacy cache if exists
+        localStorage.removeItem('puti_google_students');
+        students = [...DEFAULT_STUDENTS];
+        saveStudentData();
+      }
+
+      // Auto-migrate & enforce masking for any 3-char student name in local storage
+      let updated = false;
+      students.forEach(s => {
+        if (s.name && s.name.length === 3 && s.name.charAt(1) !== 'O' && s.name.charAt(1) !== '○') {
+          s.name = s.name.charAt(0) + 'O' + s.name.charAt(2);
+          updated = true;
+        }
+      });
+      if (updated) {
+        saveStudentData();
+      }
+    }
+
+    function saveStudentData() {
+      localStorage.setItem('puti_google_students_v2', JSON.stringify(students));
+    }
+
+    // Render Class Tabs
+    function renderClassTabs() {
+      const classes = ['全部', ...new Set(students.map(s => s.class))];
+      const container = document.getElementById('class-tabs');
+      container.innerHTML = classes.map(cls => `
+        <button class="tab-btn ${cls === activeClassFilter ? 'active' : ''}" onclick="selectClassFilter('${cls}')">
+          ${cls}
+        </button>
+      `).join('');
+    }
+
+    function selectClassFilter(cls) {
+      activeClassFilter = cls;
+      renderClassTabs();
+      renderStudentGrid();
+    }
+
+    // Render Student Grid Cards
+    function renderStudentGrid() {
+      const container = document.getElementById('student-grid');
+      const filtered = activeClassFilter === '全部' 
+        ? students 
+        : students.filter(s => s.class === activeClassFilter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); padding: 40px;">尚無學生資料</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(s => {
+        const bestFormatted = s.bestTime !== null ? `${s.bestTime.toFixed(1)}s` : '無';
+        return `
+          <div class="student-card" onclick="startPractice('${s.id}')">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="student-avatar">${s.name.charAt(0)}</div>
+              <div class="student-info">
+                <h3>${s.name} <span style="font-size:0.75rem; color:var(--google-blue); background:#e8f0fe; padding:2px 6px; border-radius:4px;">${s.class}</span></h3>
+                <p>${s.email}</p>
+              </div>
+            </div>
+            <div class="student-stats">
+              <div class="stat-tag success"><i class="fa-solid fa-circle-check"></i> 成功: ${s.count} 次</div>
+              <div class="stat-tag"><i class="fa-solid fa-bolt"></i> 最佳: ${bestFormatted}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Start Practice Session
+    function startPractice(studentId) {
+      currentStudent = students.find(s => s.id === studentId);
+      if (!currentStudent) return;
+
+      // Switch views
+      switchView('view-login');
+
+      // Reset Step to Email
+      resetStepToEmail();
+
+      // Start Timer
+      startTimer();
+    }
+
+    function resetStepToEmail() {
+      currentStep = 'email';
+      document.getElementById('login-step-title').textContent = '登入';
+      document.getElementById('login-step-subtitle').textContent = '使用您的 Google 帳戶';
+      document.getElementById('user-badge').style.display = 'none';
+
+      document.getElementById('step-email-form').style.display = 'block';
+      document.getElementById('step-password-form').style.display = 'none';
+      
+      const emailInput = document.getElementById('input-email');
+      emailInput.value = '';
+      emailInput.classList.remove('error');
+      document.getElementById('error-email').textContent = '';
+
+      emailInput.focus();
+      updateKeyHelper(currentStudent.email, '');
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      startTime = Date.now();
+      elapsedSeconds = 0;
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        elapsedSeconds = (Date.now() - startTime) / 1000;
+        updateTimerDisplay();
+      }, 100);
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      return elapsedSeconds;
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(elapsedSeconds / 60);
+      const secs = (elapsedSeconds % 60).toFixed(1);
+      const formattedMins = String(mins).padStart(2, '0');
+      const formattedSecs = String(secs).padStart(4, '0');
+      document.getElementById('timer-display').textContent = `${formattedMins}:${formattedSecs}`;
+    }
+
+    // Live Key Visual Helper & Input Change Logic
+    function onEmailInputChange(e) {
+      const val = e.target.value;
+      const target = currentStudent.email;
+      e.target.classList.remove('error');
+      document.getElementById('error-email').textContent = '';
+
+      // Check if user typed wrong character at current position
+      if (!target.startsWith(val)) {
+        playBeepSound();
+        e.target.classList.add('error');
+        document.getElementById('error-email').innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 輸入錯誤！應該輸入下方的提示字元`;
+      }
+
+      updateKeyHelper(target, val);
+    }
+
+    function onPasswordInputChange(e) {
+      const val = e.target.value;
+      const target = currentStudent.password;
+      e.target.classList.remove('error');
+      document.getElementById('error-password').textContent = '';
+
+      if (!target.startsWith(val)) {
+        playBeepSound();
+        e.target.classList.add('error');
+        document.getElementById('error-password').innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 密碼字元錯誤！請注意大小寫`;
+      }
+
+      updateKeyHelper(target, val);
+    }
+
+    // Render Next Required Key Shape Visualizer
+    function updateKeyHelper(targetStr, currentVal) {
+      const container = document.getElementById('key-visual-container');
+      const statusText = document.getElementById('key-status-text');
+
+      if (currentVal === targetStr) {
+        statusText.textContent = '👍 太棒了！內容完全正確，請點擊「下一步」';
+        container.innerHTML = `<span class="key-cap special" style="background:#e6f4ea; border-color:#34a853; color:#137333;"><i class="fa-solid fa-check"></i> 完成</span>`;
+        return;
+      }
+
+      if (!targetStr.startsWith(currentVal)) {
+        statusText.textContent = '❌ 字元不相符，請刪除重試';
+        container.innerHTML = `<span class="key-cap special" style="background:#fce8e6; border-color:#d93025; color:#c5221f;"><i class="fa-solid fa-delete-left"></i> 按 Backspace 鍵刪除</span>`;
+        return;
+      }
+
+      const nextChar = targetStr.charAt(currentVal.length);
+      statusText.textContent = `請按鍵盤輸入下一個字元：「 ${nextChar} 」`;
+
+      // Generate Key Shapes (supporting uppercase Shift indicator)
+      let html = '';
+      const isUpper = nextChar >= 'A' && nextChar <= 'Z';
+      const isSymbol = '!@#$%^&*()_+-=[]{}|;:\'",.<>/?'.includes(nextChar);
+
+      if (isUpper) {
+        html += `<span class="key-cap special"><i class="fa-solid fa-arrow-up-long"></i> Shift</span> + `;
+        html += `<span class="key-cap highlight">${nextChar}</span>`;
+        html += `<span style="font-size:0.75rem; color:var(--text-sub); margin-left:6px;">(大寫英文)</span>`;
+      } else if (nextChar === '@') {
+        html += `<span class="key-cap special"><i class="fa-solid fa-arrow-up-long"></i> Shift</span> + `;
+        html += `<span class="key-cap highlight">2</span>`;
+        html += `<span style="font-size:0.75rem; color:var(--text-sub); margin-left:6px;">(顯示為 @ 符號)</span>`;
+      } else if (nextChar === '.') {
+        html += `<span class="key-cap highlight">.</span>`;
+        html += `<span style="font-size:0.75rem; color:var(--text-sub); margin-left:6px;">(句號 / dot)</span>`;
+      } else {
+        html += `<span class="key-cap highlight">${nextChar}</span>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function appendDomain(domainStr) {
+      const emailInput = document.getElementById('input-email');
+      if (!emailInput.value.includes('@')) {
+        emailInput.value += domainStr;
+        onEmailInputChange({ target: emailInput });
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('input-password');
+      const eyeIcon = document.getElementById('eye-icon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        eyeIcon.className = 'fa-solid fa-eye-slash';
+      } else {
+        pwdInput.type = 'password';
+        eyeIcon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    // Handle "Next Step" Button Click
+    function handleNextStep() {
+      if (currentStep === 'email') {
+        const inputVal = document.getElementById('input-email').value.trim();
+        if (inputVal !== currentStudent.email) {
+          playBeepSound();
+          const inputEl = document.getElementById('input-email');
+          inputEl.classList.add('error');
+          document.getElementById('error-email').innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 帳號輸入不正確，請檢查拼字是否與正確帳號一致！`;
+          return;
+        }
+
+        // Advance to password step
+        currentStep = 'password';
+        document.getElementById('login-step-title').textContent = `歡迎`;
+        document.getElementById('login-step-subtitle').textContent = currentStudent.name;
+
+        document.getElementById('badge-avatar').textContent = currentStudent.name.charAt(0);
+        document.getElementById('badge-email').textContent = currentStudent.email;
+        document.getElementById('user-badge').style.display = 'inline-flex';
+
+        document.getElementById('step-email-form').style.display = 'none';
+        document.getElementById('step-password-form').style.display = 'block';
+
+        const pwdInput = document.getElementById('input-password');
+        pwdInput.value = '';
+        pwdInput.classList.remove('error');
+        document.getElementById('error-password').textContent = '';
+        pwdInput.focus();
+
+        updateKeyHelper(currentStudent.password, '');
+
+      } else if (currentStep === 'password') {
+        const pwdVal = document.getElementById('input-password').value;
+        if (pwdVal !== currentStudent.password) {
+          playBeepSound();
+          const inputEl = document.getElementById('input-password');
+          inputEl.classList.add('error');
+          document.getElementById('error-password').innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 密碼錯誤，請重新試試或參考下方按鍵提示！`;
+          return;
+        }
+
+        // SUCCESS!
+        const totalTime = stopTimer();
+        playSuccessSound();
+        triggerConfetti();
+
+        // Update Student Record
+        currentStudent.count = (currentStudent.count || 0) + 1;
+        if (currentStudent.bestTime === null || totalTime < currentStudent.bestTime) {
+          currentStudent.bestTime = totalTime;
+        }
+        if (!currentStudent.history) currentStudent.history = [];
+        currentStudent.history.unshift({
+          date: new Date().toLocaleString('zh-TW', { hour12: false }),
+          time: totalTime
+        });
+
+        saveStudentData();
+
+        // Show Success Screen
+        document.getElementById('success-student-name').textContent = currentStudent.name;
+        document.getElementById('res-time').textContent = `${totalTime.toFixed(2)} 秒`;
+        document.getElementById('res-count').textContent = `${currentStudent.count} 次`;
+
+        // Render History List
+        const historyContainer = document.getElementById('student-history-list');
+        historyContainer.innerHTML = currentStudent.history.map(item => `
+          <div class="history-item">
+            <span><i class="fa-regular fa-clock"></i> ${item.date}</span>
+            <span style="font-weight:700; color:var(--google-blue);">${item.time.toFixed(2)} 秒</span>
+          </div>
+        `).join('');
+
+        switchView('view-success');
+      }
+    }
+
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+
+    function restartPractice() {
+      if (currentStudent) {
+        startPractice(currentStudent.id);
+      }
+    }
+
+    function backToSelector() {
+      stopTimer();
+      renderStudentGrid();
+      switchView('view-selector');
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+    }
+
+    // Modal Operations
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function openLeaderboardModal() {
+      const tbody = document.getElementById('leaderboard-table-body');
+      // Sort by count desc, then bestTime asc
+      const sorted = [...students].sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        if (a.bestTime === null) return 1;
+        if (b.bestTime === null) return -1;
+        return a.bestTime - b.bestTime;
+      });
+
+      tbody.innerHTML = sorted.map((s, idx) => {
+        let medal = idx + 1;
+        if (idx === 0) medal = '🥇 1';
+        else if (idx === 1) medal = '🥈 2';
+        else if (idx === 2) medal = '🥉 3';
+
+        const bestStr = s.bestTime !== null ? `${s.bestTime.toFixed(2)} 秒` : '無紀錄';
+
+        return `
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 10px; font-weight: 700;">${medal}</td>
+            <td style="padding: 10px;">${s.class} - ${s.name}</td>
+            <td style="padding: 10px; font-weight: 700; color: var(--google-green);">${s.count} 次</td>
+            <td style="padding: 10px; color: var(--google-blue);">${bestStr}</td>
+          </tr>
+        `;
+      }).join('');
+
+      openModal('modal-leaderboard');
+    }
+
+    function openManagerModal() {
+      renderManageTable();
+      openModal('modal-manager');
+    }
+
+    function renderManageTable() {
+      const tbody = document.getElementById('student-manage-table-body');
+      tbody.innerHTML = students.map((s, i) => `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 6px;">${s.class}</td>
+          <td style="padding: 6px; font-weight: 600;">${s.name}</td>
+          <td style="padding: 6px;">${s.email}</td>
+          <td style="padding: 6px;">${s.password}</td>
+          <td style="padding: 6px;">
+            <button onclick="deleteStudent('${s.id}')" style="background: none; border: none; color: var(--google-red); cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function addNewStudent() {
+      const cls = document.getElementById('add-class').value.trim();
+      const name = document.getElementById('add-name').value.trim();
+      const email = document.getElementById('add-email').value.trim();
+      const pwd = document.getElementById('add-pwd').value.trim();
+
+      if (!cls || !name || !email || !pwd) {
+        alert('請填寫完整的學生資料（班級、姓名、Email、密碼）');
+        return;
+      }
+
+      const newStudent = {
+        id: 's_' + Date.now(),
+        class: cls,
+        name: name,
+        email: email,
+        password: pwd,
+        count: 0,
+        bestTime: null,
+        history: []
+      };
+
+      students.push(newStudent);
+      saveStudentData();
+      renderManageTable();
+      renderClassTabs();
+      renderStudentGrid();
+
+      document.getElementById('add-class').value = '';
+      document.getElementById('add-name').value = '';
+      document.getElementById('add-email').value = '';
+      document.getElementById('add-pwd').value = '';
+    }
+
+    function deleteStudent(id) {
+      if (confirm('確定要刪除這位學生的資料嗎？')) {
+        students = students.filter(s => s.id !== id);
+        saveStudentData();
+        renderManageTable();
+        renderClassTabs();
+        renderStudentGrid();
+      }
+    }
+
+    function resetToDefaultData() {
+      if (confirm('警告：確定要將所有學生名單與紀錄重置為預設狀態嗎？')) {
+        students = [...DEFAULT_STUDENTS];
+        saveStudentData();
+        renderManageTable();
+        renderClassTabs();
+        renderStudentGrid();
+        closeModal('modal-manager');
+      }
+    }
+
+    function exportStudentCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "班級,姓名,Email,密碼,成功次數,最佳時間(秒)\n";
+
+      students.forEach(s => {
+        const best = s.bestTime !== null ? s.bestTime.toFixed(2) : "";
+        csvContent += `"${s.class}","${s.name}","${s.email}","${s.password}","${s.count}","${best}"\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Google登入練習紀錄_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
